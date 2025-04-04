@@ -1,0 +1,23 @@
+spring:
+  cache:
+    type: redis
+  main:
+    allow-bean-definition-overriding: true
+  datasource:
+    url: "jdbc:mysql://localhost:3306/OTP"
+    driver-class-name: "com.mysql.cj.jdbc.Driver"
+    username: root
+    password: root
+  jpa:
+    generate-ddl: true
+    hibernate.ddl-auto: update
+    open-in-view: false
+    show-sql: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+server:
+  port: 8080
+  servlet:
+    context-path: /v1
