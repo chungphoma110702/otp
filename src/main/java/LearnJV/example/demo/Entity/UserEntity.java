@@ -4,10 +4,16 @@ package LearnJV.example.demo.Entity;
 import LearnJV.example.demo.Entity.Converters.UserStatusConverter;
 import LearnJV.example.demo.Enum.USER_STATUS;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "users")
 public class UserEntity extends BaseEntity{
 

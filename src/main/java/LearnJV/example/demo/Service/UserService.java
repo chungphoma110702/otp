@@ -106,6 +106,7 @@ public class UserService
 
         log.info("[resendOtp] - OTP resent successfully for transactionId {}", transactionId);
         log.info("[otp new] - OTP resent {}", registerUserEntity.getOtp());
+        log.info("[otp resendCount] - resendCount {}", registerUserEntity.getOtpResendCount());
 
         // Trả về kết quả response
         return new RegisterResponse(registerUserEntity);
