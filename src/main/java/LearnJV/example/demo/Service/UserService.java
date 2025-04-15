@@ -18,8 +18,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class UserService
-{
+public class UserService {
 
     private final OtpDomain otpDomain;
 
@@ -34,8 +33,7 @@ public class UserService
         this.registerUserRedisRepository = registerUserRedisRepository;
     }
 
-    public RegisterResponse registerUser(RegisterRequest request) throws ApplicationException
-    {
+    public RegisterResponse registerUser(RegisterRequest request) throws ApplicationException {
 
         //validate request
         this.validateUserRegisterRequest(request);
@@ -46,8 +44,7 @@ public class UserService
 
         UserEntity userEntity = userRepository.findByPhoneNumber(phoneNumber);
 
-        if (userEntity != null)
-        {
+        if (userEntity != null) {
             log.info("[registerUser] request fail : user already exists with phone {}", phoneNumber);
             throw new ApplicationException(ERROR_CODE.INVALID_REQUEST, "PhoneNumber is already exists");
         }
@@ -59,8 +56,7 @@ public class UserService
         return new RegisterResponse(otpEntity);
     }
 
-    protected void validateUserRegisterRequest(RegisterRequest request) throws ApplicationException
-    {
+    protected void validateUserRegisterRequest(RegisterRequest request) throws ApplicationException {
         if (StringUtils.isBlank(request.getPhoneNumber())) {
             throw new ApplicationException(ERROR_CODE.INVALID_PARAMETER, "phoneNumber is invalid");
         }
@@ -74,41 +70,39 @@ public class UserService
     }
 
 
-    public RegisterResponse resendOtp(String transactionId) throws ApplicationException
-    {
+    public RegisterResponse resendOtp(String transactionId) throws ApplicationException {
 
         log.info("[resendOtp] - Start with transactionId {}", transactionId);
 
-        // Lấy thông tin giao dịch từ Redis
         RegisterUserEntity registerUserEntity = registerUserRedisRepository.findById(transactionId)
                 .orElseThrow(() -> new ApplicationException(ERROR_CODE.INVALID_REQUEST, "Transaction ID not found"));
 
         long currentTime = System.currentTimeMillis() / 1000;
 
-        // Kiểm tra xem có thể gửi lại OTP không (cần chờ thời gian resendOtpTime)
+
         if (currentTime < registerUserEntity.getOtpResendTime()) {
             throw new ApplicationException(ERROR_CODE.INVALID_REQUEST, "Please wait before requesting OTP again");
         }
 
-        // Kiểm tra số lần gửi lại OTP
         if (registerUserEntity.getOtpResendCount() >= 5) {
             throw new ApplicationException(ERROR_CODE.INVALID_REQUEST, "OTP resend limit reached");
         }
 
-        // Sinh OTP mới
+
         String newOtp = otpDomain.genOtp();
         registerUserEntity.setOtp(newOtp);
-        registerUserEntity.setOtpResendTime(currentTime + 60);  // Đặt lại thời gian gửi lại OTP (1 phút sau)
-        registerUserEntity.setOtpResendCount(registerUserEntity.getOtpResendCount() + 1); // Tăng số lần gửi lại
+        registerUserEntity.setOtpResendTime(currentTime + 60);
+        registerUserEntity.setOtpExpiredTime(currentTime+300);
+        registerUserEntity.setOtpResendCount(registerUserEntity.getOtpResendCount() + 1);
 
-        // Cập nhật lại thông tin trong Redis
+
         registerUserRedisRepository.save(registerUserEntity);
 
         log.info("[resendOtp] - OTP resent successfully for transactionId {}", transactionId);
         log.info("[otp new] - OTP resent {}", registerUserEntity.getOtp());
         log.info("[otp resendCount] - resendCount {}", registerUserEntity.getOtpResendCount());
 
-        // Trả về kết quả response
+
         return new RegisterResponse(registerUserEntity);
     }
 
@@ -137,7 +131,7 @@ public class UserService
             if (registerUserEntity.getOtpFail() >= 3) {
                 throw new ApplicationException(ERROR_CODE.INVALID_REQUEST, "OTP failed 3 times. Please try again later.");
             }
-
+            log.info("[OtpFail] - OtpFail {}", registerUserEntity.getOtpFail());
             throw new ApplicationException(ERROR_CODE.INVALID_REQUEST, "Invalid OTP");
         }
 
@@ -156,4 +150,3 @@ public class UserService
         log.info("[confirmRegisterOtp] - OTP confirmed successfully for transactionId {}", request.getTransactionId());
     }
 }
-

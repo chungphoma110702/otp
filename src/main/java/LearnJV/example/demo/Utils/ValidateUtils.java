@@ -17,13 +17,25 @@ public class ValidateUtils {
         //0982573860
         //84982573860
 
-        if (phoneNumber.length() < 10 || phoneNumber.length() > 13) {
+        if (!phoneNumber.matches("^\\+?\\d+$")) {
+            throw new ApplicationException(ERROR_CODE.INVALID_PARAMETER, "phoneNumber contains invalid characters");
+        }
+        if (phoneNumber.length() < 10 || phoneNumber.length() > 12) {
             throw new ApplicationException(ERROR_CODE.INVALID_PARAMETER , "phoneNumber is invalid");
         }
         // check prefix
         if (!phoneNumber.startsWith("0") && !phoneNumber.startsWith("+84") && !phoneNumber.startsWith("84")) {
             throw new ApplicationException(ERROR_CODE.INVALID_PARAMETER , "phoneNumber is invalid");
         }
+
+        if (phoneNumber.startsWith("0") && phoneNumber.length() == 11) {
+            throw new ApplicationException(ERROR_CODE.INVALID_PARAMETER , "phoneNumber is invalid");
+        }
+
+        if (phoneNumber.startsWith("0") && phoneNumber.length() == 12) {
+            throw new ApplicationException(ERROR_CODE.INVALID_PARAMETER , "phoneNumber is invalid");
+        }
+
         if (phoneNumber.startsWith("84")) {
             return  phoneNumber;
         }

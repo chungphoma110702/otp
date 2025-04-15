@@ -20,4 +20,4 @@ spring:
 server:
   port: 8080
   servlet:
-    context-path: /v1
+    context-path: /api/v1
